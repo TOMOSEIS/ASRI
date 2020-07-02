@@ -1,0 +1,96 @@
+#!/bin/bash
+#------------------------------------------------------------
+# Author :
+# 	Baoping QIAO, 01-JUL-2020
+#	CNNC, Beijing Research Institute of Uranium Geology
+# 	Email: yesong000@126.com
+#============================================================#
+
+
+# Raw CMP gather after preprocessing
+#-------------------------------------------------------------
+indata1=raw.su
+
+# CMP gather after conventional NMO correction using velocity
+#-------------------------------------------------------------
+indata2=nmo.su
+
+# CMP gather after interferometric NMO correction
+#-------------------------------------------------------------
+indata3=inmo.su
+
+# Image section after conventional stack method
+#-------------------------------------------------------------
+indata4=nmo_stk.su
+
+# Image section after SRI method
+#-------------------------------------------------------------
+indata5=inmo_stk.su
+
+# Frequency spectrum of indata5
+#-------------------------------------------------------------
+indata6a=inmo_stk_amp.su
+
+# Frequency spectrum of indata4
+#-------------------------------------------------------------
+indata6b=nmo_stk_amp.su
+
+
+# Parameters for Plot
+#-------------------------------------------------------------
+perc1=99
+
+labelsize=18
+titlesize=15
+
+label11="Time (s)"
+label12="Offset (m)"
+label13="CMP"
+label14="Frequency (hz)"
+
+wbox=10
+hbox=6
+xbox=0.5
+ybox=1
+
+rm -rf amp* tmp* image*
+
+# Plot figures
+#-------------------------------------------------------------
+
+cat $indata6a $indata6b > tmp6
+sushw < tmp6 key=fldr,tracl,tracf a=1,1,1 b=0,1,1 > amplitude_trace.su
+
+
+suwind < ${indata1} key=cdp min=50 max=50 | \
+    supswigb key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="Raw CMP gather" > fig4a.eps
+
+suwind < ${indata2} key=cdp min=50 max=50 | \
+    supswigb key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="CMP gather after NMO correction" > fig4b.eps
+
+suwind < ${indata3} key=cdp min=50 max=50 | \
+    supswigb key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="CMP gather after INMO correction" > fig4c.eps
+
+supsimage < ${indata4} key=cdp perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label13}" titlesize="${titlesize}" \
+    title="Imaging section after conventional stack method" > fig4d.eps
+
+supsimage < ${indata5} key=cdp perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label13}" titlesize="${titlesize}" \
+    title="Imaging section after SRI method" > fig4e.eps
+
+suwind < amplitude_trace.su tmax=100 | supsgraph n=63 nplot=2 style=seismic linecolor=green,blue\
+    wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label14}" label2="${label13}" titlesize="${titlesize}" \
+    title="Frequency spectrum" > fig4f.eps
+
+
+rm -f tmp* 
+
+exit 0
