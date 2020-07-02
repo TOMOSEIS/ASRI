@@ -1,0 +1,128 @@
+#!/bin/bash
+#------------------------------------------------------------
+# Author :
+# 	Baoping QIAO, 01-JUL-2020
+#	CNNC, Beijing Research Institute of Uranium Geology
+# 	Email: yesong000@126.com
+#============================================================#
+
+
+# Raw CMP gather
+#-------------------------------------------------------------
+indata1=raws.su
+
+# Virtual reflection gather
+#-------------------------------------------------------------
+indata2=raws_x.su
+
+# Interferometric NMO correction
+#-------------------------------------------------------------
+indata3=raws_xx.su
+
+# Raw CMP gather with noise
+#-------------------------------------------------------------
+indata4=rawns.su
+
+# Virtual reflection gather with noise
+#-------------------------------------------------------------
+indata5=rawns_x.su
+
+# Interferometric NMO correction with noise
+#-------------------------------------------------------------
+indata6=rawns_xx.su
+
+# Zero-offset trace without noise
+#-------------------------------------------------------------
+indata7a=zero_offset.su
+
+# Retrieved trace by SRI from raw CMP gather without noise
+#-------------------------------------------------------------
+indata7b=stk_inmo.su
+
+# Retrieved trace bySRI from raw CMP gather with noise
+#-------------------------------------------------------------
+indata7c=stk_inmonoise.su
+
+# Frequency spectrum of zoomed-in indata7a above 0.4s
+#-------------------------------------------------------------
+indata8a=zero_offset_amp_zoom.su
+
+# Frequency spectrum of zoomed-in indata7b above 0.4s
+#-------------------------------------------------------------
+indata8b=stk_inmo_amp_zoom.su
+
+# Frequency spectrum of zoomed-in indata7c above 0.4s
+#-------------------------------------------------------------
+indata8c=stk_inmonoise_amp_zoom.su
+
+
+# Parameters for Plot
+#-------------------------------------------------------------
+perc1=99
+
+labelsize=18
+titlesize=15
+
+label11="Time (s)"
+label12="Offset (m)"
+label13="Normalized Amplitude"
+label14="Frequency (hz)"
+
+wbox=10
+hbox=6
+xbox=0.5
+ybox=1
+
+rm -rf amp* tmp* image*
+
+# Plot figures
+#-------------------------------------------------------------
+
+cat $indata7a $indata7b $indata7c > tmp7
+sushw < tmp7 key=fldr,tracl,tracf a=1,1,1 b=0,1,1 > imaging_trace.su
+
+cat $indata8a $indata8b $indata8c > tmp8
+sushw < tmp8 key=fldr,tracl,tracf a=1,1,1 b=0,1,1 > amplitude_trace.su
+
+
+supswigb < ${indata1} key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="Raw CMP gather" > fig2a.eps
+
+suwind < ${indata2} tmin=0.4 tmax=1.6 | supswigb key=offset f1=-0.6 perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="Virtual reflection gather" > fig2b.eps
+
+suwind < ${indata3} tmax=0.8 | supswigb key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="CMP gather after interferometric NMO" > fig2c.eps
+
+supswigb < ${indata4} key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="Raw CMP gather with noise" > fig2d.eps
+
+suwind < ${indata5} tmin=0.4 tmax=1.6 | supswigb key=offset f1=-0.6 perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="Virtual reflection gather with noise" > fig2e.eps
+
+suwind < ${indata6} tmax=0.8 | supswigb key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="CMP gather after interferometric NMO with noise" > fig2f.eps
+
+suwind < imaging_trace.su itmin=1 tmax=0.8 | supsgraph n=401 nplot=3 style=seismic linecolor=green,blue,red \
+    wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label13}" titlesize="${titlesize}" \
+    title="Imaging trace" > fig2g.eps
+
+suwind < imaging_trace.su itmin=1 tmax=0.4 | supsgraph n=401 nplot=3 style=seismic linecolor=green,blue,red \
+    wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label13}" titlesize="${titlesize}" \
+    title="Imaging trace with zooming in" > fig2h.eps
+
+suwind < amplitude_trace.su tmax=70 | supsgraph n=30 nplot=3 style=seismic linecolor=green,blue,red \
+    wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label14}" label2="${label13}" titlesize="${titlesize}" \
+    title="Frequency spectrum" > fig2i.eps
+rm -f tmp* 
+
+exit 0
