@@ -1,0 +1,110 @@
+#!/bin/bash
+#------------------------------------------------------------
+# Author :
+# 	Baoping QIAO, 01-JUL-2020
+#	CNNC, Beijing Research Institute of Uranium Geology
+# 	Email: yesong000@126.com
+#============================================================#
+
+
+# Raw CMP gather
+#-------------------------------------------------------------
+indata1=raws.su
+
+# Virtual reflection gather
+#-------------------------------------------------------------
+indata2=raws_x.su
+
+# Conventional NMO correction
+#-------------------------------------------------------------
+indata3=vnmo.su
+
+# Interferometric NMO correction
+#-------------------------------------------------------------
+indata4=raws_xx.su
+
+# Zero-offset trace
+#-------------------------------------------------------------
+indata5a=zero_offset.su
+
+# Retrieved trace by seismic reflection interferometry method
+#-------------------------------------------------------------
+indata5b=stk_inmo.su
+
+# Retrieved trace by conventional stack method
+#-------------------------------------------------------------
+indata5c=stk_vnmo.su
+
+# Frequency spectrum of indata5a
+#-------------------------------------------------------------
+indata6a=zero_offset_amp.su
+
+# Frequency spectrum of indata5b
+#-------------------------------------------------------------
+indata6b=stk_inmo_amp.su
+
+# Frequency spectrum of indata5c
+#-------------------------------------------------------------
+indata6c=stk_vnmo_amp.su
+
+
+
+# Parameters for Plot
+#-------------------------------------------------------------
+perc1=99
+
+labelsize=18
+titlesize=15
+
+label11="Time (s)"
+label12="Offset (m)"
+label13="Normalized Amplitude"
+label14="Frequency (hz)"
+
+wbox=10
+hbox=6
+xbox=0.5
+ybox=1
+
+rm -rf amp* tmp* image*
+
+# Plot figures
+#-------------------------------------------------------------
+
+cat $indata5a $indata5b $indata5c > tmp5
+sushw < tmp5 key=fldr,tracl,tracf a=1,1,1 b=0,1,1 > imaging_trace.su
+
+cat $indata6a $indata6b $indata6c > tmp6
+sushw < tmp6 key=fldr,tracl,tracf a=1,1,1 b=0,1,1 > amplitude_trace.su
+
+
+
+supswigb < ${indata1} key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="Raw CMP gather" > fig1a.eps
+
+suwind < ${indata2} tmin=0.8 tmax=1.8 | supswigb key=offset f1=-0.2 perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="Virtual reflection gather" > fig1b.eps
+
+suwind < ${indata3} tmax=0.4 | supswigb key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="CMP gather after conventional NMO" > fig1c.eps
+
+suwind < ${indata4} tmax=0.4 | supswigb key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="CMP gather after interferometric NMO" > fig1d.eps
+
+suwind < imaging_trace.su tmax=0.4 | supsgraph n=201 nplot=3 style=seismic linecolor=green,blue,red \
+    wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label13}" titlesize="${titlesize}" \
+    title="Imaging trace" > fig1e.eps
+
+suwind < amplitude_trace.su tmax=70 | supsgraph n=72 nplot=3 style=seismic linecolor=green,blue,red \
+    wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label14}" label2="${label13}" titlesize="${titlesize}" \
+    title="Frequency spectrum" > fig1f.eps
+
+rm -f tmp* 
+
+exit 0
