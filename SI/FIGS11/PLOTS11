@@ -1,0 +1,70 @@
+#!/bin/bash
+#------------------------------------------------------------
+# Author :
+# 	Baoping QIAO, 14-JUL-2020
+#	CNNC, Beijing Research Institute of Uranium Geology
+# 	Email: yesong000@126.com
+#============================================================#
+
+# input data1 of Figure S7a
+#-------------------------------------------------------------
+indata1=fldr50_beforedecon.su
+
+# input data2 of Figure S9a
+#-------------------------------------------------------------
+indata2=fldr50_afterdecon.su
+
+# input data3 of Figure S8a
+#-------------------------------------------------------------
+indata3=fldr25_beforedecon.su
+
+# input data1 of Figure S10a
+#-------------------------------------------------------------
+indata4=fldr25_afterdecon.su
+
+# Parameters for Plot
+#-------------------------------------------------------------
+perc1=99
+
+labelsize=18
+titlesize=15
+
+label11="Time (s)"
+label12="Offset (m)"
+label13="Normalized Amplitude"
+label14="Frequency (hz)"
+
+wbox=10
+hbox=6
+xbox=0.5
+ybox=1
+
+rm -rf amp* 
+# Plot figures
+#-------------------------------------------------------------
+sufft < $indata1 | suamp | sustack key=fldr | suop op=norm > tmp_amp1
+sufft < $indata2 | suamp | sustack key=fldr | suop op=norm > tmp_amp2
+sufft < $indata3 | suamp | sustack key=fldr | suop op=norm > tmp_amp3
+sufft < $indata4 | suamp | sustack key=fldr | suop op=norm > tmp_amp4
+
+
+cat tmp_amp1 tmp_amp2 > tmp_fldr50_amp.su
+sushw < tmp_fldr50_amp.su key=fldr,tracl,tracf a=1,1,1 b=0,1,1 > fldr50_amplitude.su
+
+cat tmp_amp3 tmp_amp4 > tmp_fldr25_amp.su
+sushw < tmp_fldr25_amp.su key=fldr,tracl,tracf a=1,1,1 b=0,1,1 > fldr25_amplitude.su
+
+suwind < fldr50_amplitude.su tmax=100 | supsgraph n=63 nplot=2 style=seismic linecolor=red,blue\
+    wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label14}" label2="${label13}" titlesize="${titlesize}" \
+    title="Frequency spectrum" > figs11a.eps
+
+suwind < fldr25_amplitude.su tmax=100 | supsgraph n=51 nplot=2 style=seismic linecolor=red,blue\
+    wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label14}" label2="${label13}" titlesize="${titlesize}" \
+    title="Frequency spectrum" > figs11b.eps
+
+
+rm -f tmp* 
+
+exit 0
