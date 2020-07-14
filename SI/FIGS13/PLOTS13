@@ -1,0 +1,74 @@
+#!/bin/bash
+#------------------------------------------------------------
+# Author :
+# 	Baoping QIAO, 14-JUL-2020
+#	CNNC, Beijing Research Institute of Uranium Geology
+# 	Email: yesong000@126.com
+#============================================================#
+
+
+# Raw shot gathers
+#-------------------------------------------------------------
+indata1=S13_RAW.su
+
+# Image section after conventional stack method
+#-------------------------------------------------------------
+indata2=S13_STK.su
+
+# Parameters for Plot
+#-------------------------------------------------------------
+perc1=99
+
+labelsize=18
+titlesize=15
+
+label11="Time (s)"
+label12="Offset (m)"
+label13="CMP"
+label14="Frequency (hz)"
+
+wbox=10
+hbox=6
+xbox=0.5
+ybox=1
+
+# Shot for Plot
+#-------------------------------------------------------------
+fldrplot=25
+
+rm -rf amp* tmp* image*
+
+# Plot figures
+#-------------------------------------------------------------
+
+suwind < ${indata1} key=fldr min=$fldrplot max=$fldrplot > tmp_fldr
+
+	for ((j=1;j<49;j=j+1))
+	do
+		suwind < tmp_fldr key=tracf min=$j max=$j > tmp1
+		offset=`sugethw offset < tmp1 | sed 1q | sed 's/.*offset=//'`
+  		OFFSET=`bc -l <<-END
+  		$offset * ( -1 )
+END`
+		sushw < tmp1 key=offset a=$OFFSET >> tmp2
+	done
+	for ((j=49;j<=96;j=j+1))
+	do
+		suwind < tmp_fldr key=tracf min=$j max=$j >> tmp2
+	done
+
+suop < tmp2 op=norm > tmp_fldrplot
+
+supswigb < tmp_fldrplot \
+    key=offset perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label12}" titlesize="${titlesize}" \
+    title="common shot gather after residual statics" > figs13a.eps
+
+supsimage < ${indata2} key=cdp f2=1 perc=${perc1} wbox=${wbox} hbox=${hbox} xbox=${xbox} ybox=${ybox} \
+    labelsize=${labelsize} label1="${label11}" label2="${label13}" titlesize="${titlesize}" \
+    title="Imaging section after residual statics" > figs13b.eps
+
+
+rm -f tmp* 
+
+exit 0
